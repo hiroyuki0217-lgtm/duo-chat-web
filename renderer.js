@@ -1,4 +1,8 @@
-const NAMES = { muse: 'ミューズ', grokbot: 'Grok Bot', all: 'ふたり同時' };
+const ROOMS = {
+  muse: { name: 'ミューズ', ini: 'M', color: '#8b5cf6' },
+  grokbot: { name: 'Grok Bot', ini: 'G', color: '#1f2937' },
+  all: { name: 'ふたり同時', ini: '2', color: '#0ea5a4' },
+};
 const store = { muse: [], grokbot: [], all: [] };
 const unread = { muse: 0, grokbot: 0, all: 0 };
 let cur = 'muse';
@@ -7,38 +11,124 @@ let me = 'yang';
 const $ = (s) => document.querySelector(s);
 const log = $('#log');
 const input = $('#input');
+const go = $('#go');
 
-function el(msg) {
-  const d = document.createElement('div');
-  d.className = 'msg' + (msg.from === me ? ' me' : '');
-  const w = document.createElement('div');
-  w.className = 'who';
-  const t = msg.at ? new Date(msg.at) : null;
-  const hm = t && !isNaN(t) ? `${t.getHours()}:${String(t.getMinutes()).padStart(2, '0')}` : '';
-  w.textContent = `${msg.from}${hm ? ' ・ ' + hm : ''}`;
-  const b = document.createElement('div');
-  b.textContent = msg.body;
-  d.append(w, b);
-  return d;
+const WD = ['日', '月', '火', '水', '木', '金', '土'];
+const pad = (n) => String(n).padStart(2, '0');
+
+function colorOf(name) {
+  if (name === 'muse') return ROOMS.muse.color;
+  if (name === me) return '#2f6df6';
+  let h = 0;
+  for (const c of name) h = (h * 31 + c.charCodeAt(0)) % 360;
+  return `hsl(${h} 45% 45%)`;
+}
+
+function avatar(name, cls = '') {
+  const a = document.createElement('span');
+  a.className = 'av ' + cls;
+  a.style.background = colorOf(name);
+  a.textContent = (name || '?').slice(0, 1).toUpperCase();
+  return a;
+}
+
+const dateOf = (m) => {
+  const d = m.at ? new Date(m.at) : null;
+  return d && !isNaN(d) ? d : null;
+};
+const hm = (d) => (d ? `${d.getHours()}:${pad(d.getMinutes())}` : '');
+
+function dayLabel(d) {
+  const now = new Date();
+  const same = (a, b) => a.toDateString() === b.toDateString();
+  if (same(d, now)) return '今日';
+  const y = new Date(now);
+  y.setDate(now.getDate() - 1);
+  if (same(d, y)) return '昨日';
+  return `${d.getMonth() + 1}/${d.getDate()}（${WD[d.getDay()]}）`;
+}
+
+function buildLog(list) {
+  const frag = document.createDocumentFragment();
+  if (!list.length) {
+    const e = document.createElement('div');
+    e.className = 'empty';
+    e.textContent = 'まだメッセージはありません';
+    frag.appendChild(e);
+    return frag;
+  }
+  let lastDay = '';
+  let prev = null;
+  for (const m of list) {
+    const d = dateOf(m);
+    const day = d ? d.toDateString() : '';
+    if (day && day !== lastDay) {
+      const s = document.createElement('div');
+      s.className = 'day';
+      s.textContent = dayLabel(d);
+      frag.appendChild(s);
+      lastDay = day;
+      prev = null;
+    }
+    const mine = m.from === me;
+    const grouped = prev && prev.from === m.from && d && prev.d && d - prev.d < 3 * 60 * 1000;
+    const row = document.createElement('div');
+    row.className = 'row' + (mine ? ' me' : '') + (grouped ? '' : ' first');
+    if (!mine) row.appendChild(grouped ? avatar(m.from, 'ghost') : avatar(m.from));
+    const col = document.createElement('div');
+    col.className = 'col';
+    if (!mine && !grouped) {
+      const n = document.createElement('div');
+      n.className = 'nm';
+      n.textContent = m.from;
+      col.appendChild(n);
+    }
+    const line = document.createElement('div');
+    line.className = 'line';
+    const b = document.createElement('div');
+    b.className = 'bub';
+    b.textContent = m.body;
+    const t = document.createElement('span');
+    t.className = 'tm';
+    t.textContent = hm(d);
+    line.append(b, t);
+    col.appendChild(line);
+    row.appendChild(col);
+    frag.appendChild(row);
+    prev = { from: m.from, d };
+  }
+  return frag;
 }
 
 function atBottom() {
   return log.scrollHeight - log.scrollTop - log.clientHeight < 80;
 }
 
-function render() {
-  log.replaceChildren(...store[cur].map(el));
-  log.scrollTop = log.scrollHeight;
+function render(stick = true) {
+  const top = log.scrollTop;
+  log.replaceChildren(buildLog(store[cur]));
+  log.scrollTop = stick ? log.scrollHeight : top;
 }
 
-function badges() {
+function sidebar() {
   document.querySelectorAll('.room').forEach((b) => {
-    const n = unread[b.dataset.room];
+    const k = b.dataset.room;
+    const av = b.querySelector('.av');
+    av.style.background = ROOMS[k].color;
+    av.textContent = ROOMS[k].ini;
+    const last = store[k][store[k].length - 1];
+    b.querySelector('.prev').textContent = last ? last.body.replace(/\s+/g, ' ') : '';
+    const d = last && dateOf(last);
+    b.querySelector('.time').textContent = d ? (new Date().toDateString() === d.toDateString() ? hm(d) : `${d.getMonth() + 1}/${d.getDate()}`) : '';
     const bd = b.querySelector('.badge');
-    bd.hidden = !n;
-    bd.textContent = n;
-    b.classList.toggle('on', b.dataset.room === cur);
+    bd.hidden = !unread[k];
+    bd.textContent = unread[k];
+    b.classList.toggle('on', k === cur);
   });
+  const h = $('#hav');
+  h.style.background = ROOMS[cur].color;
+  h.textContent = ROOMS[cur].ini;
+  $('#title').textContent = ROOMS[cur].name;
 }
 
 function addMessages(list, initial) {
@@ -51,34 +141,37 @@ function addMessages(list, initial) {
     if (m.room === cur) touched = true;
     else if (!initial && m.from !== me) unread[m.room]++;
   }
-  if (touched) {
-    const stick = atBottom() || initial;
-    const top = log.scrollTop;
-    log.replaceChildren(...store[cur].map(el));
-    log.scrollTop = stick ? log.scrollHeight : top;
-  }
-  badges();
+  if (touched) render(atBottom() || initial || list.some((m) => m.from === me));
+  sidebar();
 }
 
 document.querySelectorAll('.room').forEach((b) =>
   b.addEventListener('click', () => {
     cur = b.dataset.room;
     unread[cur] = 0;
-    $('#title').textContent = NAMES[cur];
     render();
-    badges();
+    sidebar();
     input.focus();
   })
 );
+
+function fit() {
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 140) + 'px';
+  go.disabled = !input.value.trim();
+}
+input.addEventListener('input', fit);
 
 async function send() {
   const body = input.value.trim();
   if (!body) return;
   input.value = '';
+  fit();
   try {
     await window.api.send({ room: cur, to: cur, body });
   } catch (e) {
     input.value = body;
+    fit();
     setStatus({ state: 'error', detail: e.message });
   }
 }
@@ -96,7 +189,7 @@ input.addEventListener('keydown', (e) => {
 
 function setStatus({ state, detail }) {
   const s = $('#status');
-  s.className = state === 'error' ? 'err' : '';
+  s.className = state === 'error' ? 'err' : 'ok';
   s.textContent = state === 'ok' ? '同期中' : detail || 'エラー';
 }
 
@@ -108,7 +201,7 @@ window.api.onReset(() => {
     unread[k] = 0;
   }
   render();
-  badges();
+  sidebar();
 });
 
 const dlg = $('#dlg');
@@ -132,5 +225,8 @@ $('#cfgForm').addEventListener('submit', async () => {
 
 window.api.getCfg().then((c) => {
   me = c.me;
+  render();
 });
+render();
+sidebar();
 input.focus();
