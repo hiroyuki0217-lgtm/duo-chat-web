@@ -1,10 +1,11 @@
 const ROOMS = {
   muse: { name: 'ミューズ', ini: 'M', color: '#8b5cf6' },
   grokbot: { name: 'Grok Bot', ini: 'G', color: '#1f2937' },
+  claude: { name: 'Claude', ini: 'C', color: '#d97757' },
   all: { name: 'ふたり同時', ini: '2', color: '#0ea5a4' },
 };
-const store = { muse: [], grokbot: [], all: [] };
-const unread = { muse: 0, grokbot: 0, all: 0 };
+const store = { muse: [], grokbot: [], claude: [], all: [] };
+const unread = { muse: 0, grokbot: 0, claude: 0, all: 0 };
 let cur = 'muse';
 let me = 'yang';
 
@@ -18,6 +19,7 @@ const pad = (n) => String(n).padStart(2, '0');
 
 function colorOf(name) {
   if (name === 'muse') return ROOMS.muse.color;
+  if (name === 'claude') return ROOMS.claude.color;
   if (name === me) return '#2f6df6';
   let h = 0;
   for (const c of name) h = (h * 31 + c.charCodeAt(0)) % 360;
