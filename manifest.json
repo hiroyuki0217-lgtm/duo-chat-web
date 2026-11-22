@@ -1,0 +1,9 @@
+{
+  "name": "Duo Chat",
+  "short_name": "Duo Chat",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#1c1c1e",
+  "theme_color": "#1c1c1e",
+  "icons": []
+}
