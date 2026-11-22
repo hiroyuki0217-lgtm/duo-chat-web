@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; connect-src https:">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; connect-src https://api.github.com">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -116,7 +116,6 @@ body { height:100dvh; }
     <label>ブランチ</label><input id="cBranch">
     <label>自分の名前（from）</label><input id="cMe">
     <label>GitHubトークン（空欄なら gh auth のものを使う）</label><input id="cToken" type="password" placeholder="変更するときだけ入力">
-    <label>marilu受付URL（空欄は変更なし・「-」で解除）</label><input id="cHook" type="password" placeholder="https://…">
     <div class="btns"><button type="button" id="cCancel">閉じる</button><button type="submit" id="cSave">保存</button></div>
   </form>
 </dialog>

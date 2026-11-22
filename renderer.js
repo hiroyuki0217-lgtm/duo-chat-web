@@ -211,14 +211,12 @@ $('#gear').addEventListener('click', async () => {
   $('#cBranch').value = c.branch;
   $('#cMe').value = c.me;
   $('#cToken').value = '';
-  $('#cHook').value = '';
-  $('#cHook').placeholder = c.hasHook ? '設定済み' : 'https://…';
   dlg.showModal();
 });
 $('#cCancel').addEventListener('click', () => dlg.close());
 $('#cfgForm').addEventListener('submit', async () => {
   try {
-    await window.api.setCfg({ repo: $('#cRepo').value, branch: $('#cBranch').value, me: $('#cMe').value, token: $('#cToken').value, hook: $('#cHook').value });
+    await window.api.setCfg({ repo: $('#cRepo').value, branch: $('#cBranch').value, me: $('#cMe').value, token: $('#cToken').value });
     me = $('#cMe').value.trim() || me;
   } catch (e) {
     setStatus({ state: 'error', detail: e.message });
