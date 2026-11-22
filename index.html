@@ -59,13 +59,14 @@ header .av { width:34px; height:34px; font-size:14px; }
 .row.me .bub { background:var(--me); color:var(--meText); border-bottom-right-radius:6px; }
 .tm { font-size:10.5px; color:var(--sub); white-space:nowrap; padding-bottom:2px; }
 
-form { display:flex; align-items:flex-end; gap:8px; padding:10px 16px 14px; }
+#form { display:flex; align-items:flex-end; gap:8px; padding:10px 16px 14px; }
 #input { flex:1; resize:none; max-height:140px; min-height:40px; padding:9px 16px; border-radius:20px; border:1px solid var(--line); background:var(--side); color:inherit; font:inherit; line-height:1.45; outline:none; }
 #input:focus { border-color:var(--me); }
 #go { flex:none; width:40px; height:40px; border:0; border-radius:50%; background:var(--me); color:#fff; font-size:18px; cursor:pointer; }
 #go:disabled { background:var(--line); color:var(--sub); cursor:default; }
 
 dialog { border:1px solid var(--line); border-radius:14px; background:var(--bg); color:var(--text); width:420px; }
+dialog form { display:block; padding:0; }
 dialog label { display:block; margin:10px 0 2px; font-size:12px; color:var(--sub); }
 dialog input { width:100%; padding:7px 9px; border-radius:8px; border:1px solid var(--line); background:var(--side); color:inherit; font:inherit; }
 .btns { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
@@ -84,9 +85,9 @@ body { height:100dvh; }
   header { padding:8px 14px; }
   #log { padding:10px 12px 6px; }
   #input, dialog input { font-size:16px; }
-  dialog { width:92vw; }
+  dialog { width:92vw; padding:16px; }
   .col { max-width:80%; }
-  form { padding:8px 12px calc(10px + env(safe-area-inset-bottom)); }
+  #form { padding:8px 12px calc(10px + env(safe-area-inset-bottom)); }
 }
 </style>
 </head>
