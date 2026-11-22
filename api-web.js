@@ -86,12 +86,18 @@
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { etag = null; poll(); } });
 
   window.api = {
-    getCfg: async () => ({ repo: cfg.repo, branch: cfg.branch, me: cfg.me, hasToken: !!cfg.token }),
+    getCfg: async () => ({ repo: cfg.repo, branch: cfg.branch, me: cfg.me, hasToken: !!cfg.token, hasHook: !!cfg.hook }),
     setCfg: async (n) => {
       cfg.repo = (n.repo || cfg.repo).trim();
       cfg.branch = (n.branch || cfg.branch).trim();
       cfg.me = (n.me || cfg.me).trim();
       if (n.token && n.token.trim()) cfg.token = n.token.trim();
+      if (n.hook && n.hook.trim()) {
+        const h = n.hook.trim();
+        if (h === '-') cfg.hook = '';
+        else if (!/^https:\/\//.test(h)) throw new Error('受付URLは https:// で始まる必要があります');
+        else cfg.hook = h;
+      }
       localStorage.setItem(KEY, JSON.stringify(cfg));
       start();
     },
@@ -105,6 +111,10 @@
       seen.set(p, m);
       emit('messages', { messages: [m], initial: false });
       etag = null;
+      if (cfg.hook && (room === 'grokbot' || room === 'all')) {
+        fetch(cfg.hook, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ event: 'duo-chat-message', repo: cfg.repo, room: m.room, from: m.from, at: m.at, path: m.path, body: m.body }) }).catch(() => {});
+      }
     },
     onMessages: (cb) => L.messages.push(cb),
     onStatus: (cb) => L.status.push(cb),
